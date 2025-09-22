@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Night Canteen - University Hostels</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --dark-bg: #0f172a;
+            --dark-card: #1e293b;
+            --dark-border: #334155;
+            --dark-text: #f1f5f9;
+            --dark-text-secondary: #94a3b8;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #22c55e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--dark-card);
+            border-bottom: 1px solid var(--dark-border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 5px;
+            background: var(--dark-bg);
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--dark-text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .hostel-selector {
+            padding: 8px 12px;
+            border-radius: 6px;
+            background: var(--dark-bg);
+            border: 1px solid var(--dark-border);
+            color: var(--dark-text);
+            min-width: 200px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--dark-card);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--dark-border);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--dark-border);
+            background: var(--dark-bg);
+            color: var(--dark-text);
+            font-size: 1rem;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.875rem;
+        }
+
+        /* Grid Layout */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: 1fr;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        /* Snack Items */
+        .snack-item {
+            background: var(--dark-card);
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid var(--dark-border);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .snack-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .snack-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .snack-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .snack-price {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .snack-quantity {
+            color: var(--dark-text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .snack-seller {
+            font-size: 0.875rem;
+            color: var(--dark-text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        /* Orders Table */
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .orders-table th, .orders-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .orders-table th {
+            background: var(--dark-bg);
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .status-confirmed {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .status-rejected {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .status-cancelled {
+            background: rgba(100, 116, 139, 0.2);
+            color: var(--dark-text-secondary);
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--dark-card);
+            border-radius: 10px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--dark-text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .grid-cols-2, .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .orders-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid var(--accent);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span>🌙</span>
+                    <span>Night Canteen</span>
+                </div>
+                
+                <select id="hostelSelector" class="hostel-selector">
+                    <option value="">Select Your Hostel</option>
+                    <option value="Sannasi A">Sannasi A</option>
+                    <option value="Sannasi C">Sannasi C</option>
+                    <option value="Paari (G Block)">Paari (G Block)</option>
+                    <option value="Kaari (H Block)">Kaari (H Block)</option>
+                    <option value="Oori (I Block)">Oori (I Block)</option>
+                    <option value="Adhiyaman (J Block)">Adhiyaman (J Block)</option>
+                    <option value="Nelson Mandela">Nelson Mandela</option>
+                    <option value="Agasithiyar">Agasithiyar</option>
+                    <option value="Pierre Fauchard">Pierre Fauchard</option>
+                    <option value="Mullai (D Block)">Mullai (D Block)</option>
+                    <option value="Thamarai (E Block)">Thamarai (E Block)</option>
+                    <option value="Malligai (F Block)">Malligai (F Block)</option>
+                    <option value="Manoranjitham (K Block)">Manoranjitham (K Block)</option>
+                    <option value="Avvaiyar">Avvaiyar</option>
+                    <option value="Green Pearl">Green Pearl</option>
+                    <option value="B Block">B Block</option>
+                    <option value="ESQ-A">ESQ-A</option>
+                    <option value="ESQ-B">ESQ-B</option>
+                    <option value="Senbagam">Senbagam</option>
+                    <option value="Meenakshi">Meenakshi</option>
+                    <option value="Kalpana Chawla">Kalpana Chawla</option>
+                    <option value="Kopperundevi (M Block)">Kopperundevi (M Block)</option>
+                    <option value="Began">Began</option>
+                </select>
+                
+                <div class="nav-tabs">
+                    <button class="tab-btn active" data-tab="buyer">Buyer</button>
+                    <button class="tab-btn" data-tab="seller">Seller Dashboard</button>
+                    <button class="tab-btn" data-tab="upload">Upload Snacks</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Buyer Tab -->
+            <div id="buyerTab" class="tab-content active">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Available Snacks</h2>
+                        <div id="buyerHostelInfo"></div>
+                    </div>
+                    <div id="snacksList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                        <!-- Snacks will be loaded here -->
+                    </div>
+                    <div id="noSnacksMessage" class="hidden">
+                        <p>No snacks available in your hostel at the moment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seller Dashboard Tab -->
+            <div id="sellerTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Order Management</h2>
+                        <div id="sellerHostelInfo"></div>
+                    </div>
+                    <div id="ordersList">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Snack</th>
+                                    <th>Buyer Details</th>
+                                    <th>Qty</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTableBody">
+                                <!-- Orders will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="noOrdersMessage" class="hidden">
+                        <p>No orders to display.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload Snacks Tab -->
+            <div id="uploadTab" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Upload New Snack</h2>
+                    </div>
+                    <form id="snackUploadForm">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="form-label" for="snackName">Snack Name</label>
+                                <input type="text" id="snackName" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="snackPrice">Price (₹)</label>
+                                <input type="number" id="snackPrice" class="form-input" min="1" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="snackQuantity">Quantity</label>
+                                <input type="number" id="snackQuantity" class="form-input" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="sellerHostel">Your Hostel</label>
+                                <select id="sellerHostel" class="form-select" required>
+                                    <option value="">Select Hostel</option>
+                                    <option value="Sannasi A">Sannasi A</option>
+                                    <option value="Sannasi C">Sannasi C</option>
+                                    <option value="Paari (G Block)">Paari (G Block)</option>
+                                    <option value="Kaari (H Block)">Kaari (H Block)</option>
+                                    <option value="Oori (I Block)">Oori (I Block)</option>
+                                    <option value="Adhiyaman (J Block)">Adhiyaman (J Block)</option>
+                                    <option value="Nelson Mandela">Nelson Mandela</option>
+                                    <option value="Agasithiyar">Agasithiyar</option>
+                                    <option value="Pierre Fauchard">Pierre Fauchard</option>
+                                    <option value="Mullai (D Block)">Mullai (D Block)</option>
+                                    <option value="Thamarai (E Block)">Thamarai (E Block)</option>
+                                    <option value="Malligai (F Block)">Malligai (F Block)</option>
+                                    <option value="Manoranjitham (K Block)">Manoranjitham (K Block)</option>
+                                    <option value="Avvaiyar">Avvaiyar</option>
+                                    <option value="Green Pearl">Green Pearl</option>
+                                    <option value="B Block">B Block</option>
+                                    <option value="ESQ-A">ESQ-A</option>
+                                    <option value="ESQ-B">ESQ-B</option>
+                                    <option value="Senbagam">Senbagam</option>
+                                    <option value="Meenakshi">Meenakshi</option>
+                                    <option value="Kalpana Chawla">Kalpana Chawla</option>
+                                    <option value="Kopperundevi (M Block)">Kopperundevi (M Block)</option>
+                                    <option value="Began">Began</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="sellerName">Your Name</label>
+                                <input type="text" id="sellerName" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="sellerPhone">Your Phone</label>
+                                <input type="tel" id="sellerPhone" class="form-input" required>
+                            </div>
+                            <div class="form-group md:col-span-2">
+                                <label class="form-label" for="snackImage">Snack Image URL</label>
+                                <input type="url" id="snackImage" class="form-input" placeholder="https://example.com/image.jpg">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-4">Upload Snack</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Place Order</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <form id="checkoutForm">
+                <div id="checkoutSnackInfo" class="mb-4"></div>
+                <div class="form-group">
+                    <label class="form-label" for="orderQuantity">Quantity</label>
+                    <input type="number" id="orderQuantity" class="form-input" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="buyerName">Your Name</label>
+                    <input type="text" id="buyerName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="buyerRoom">Room Number</label>
+                    <input type="text" id="buyerRoom" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="buyerPhone">Your Phone</label>
+                    <input type="tel" id="buyerPhone" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="buyerHostel">Your Hostel</label>
+                    <select id="buyerHostel" class="form-select" required>
+                        <option value="">Select Hostel</option>
+                        <option value="Sannasi A">Sannasi A</option>
+                        <option value="Sannasi C">Sannasi C</option>
+                        <option value="Paari (G Block)">Paari (G Block)</option>
+                        <option value="Kaari (H Block)">Kaari (H Block)</option>
+                        <option value="Oori (I Block)">Oori (I Block)</option>
+                        <option value="Adhiyaman (J Block)">Adhiyaman (J Block)</option>
+                        <option value="Nelson Mandela">Nelson Mandela</option>
+                        <option value="Agasithiyar">Agasithiyar</option>
+                        <option value="Pierre Fauchard">Pierre Fauchard</option>
+                        <option value="Mullai (D Block)">Mullai (D Block)</option>
+                        <option value="Thamarai (E Block)">Thamarai (E Block)</option>
+                        <option value="Malligai (F Block)">Malligai (F Block)</option>
+                        <option value="Manoranjitham (K Block)">Manoranjitham (K Block)</option>
+                        <option value="Avvaiyar">Avvaiyar</option>
+                        <option value="Green Pearl">Green Pearl</option>
+                        <option value="B Block">B Block</option>
+                        <option value="ESQ-A">ESQ-A</option>
+                        <option value="ESQ-B">ESQ-B</option>
+                        <option value="Senbagam">Senbagam</option>
+                        <option value="Meenakshi">Meenakshi</option>
+                        <option value="Kalpana Chawla">Kalpana Chawla</option>
+                        <option value="Kopperundevi (M Block)">Kopperundevi (M Block)</option>
+                        <option value="Began">Began</option>
+                    </select>
+                </div>
+                <div id="checkoutTotal" class="mb-4 font-bold text-lg"></div>
+                <button type="submit" class="btn btn-primary w-full">Place Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1100;"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="spinner hidden"></div>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://tfcbioqkslmppxgoqjhk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmY2Jpb3Frc2xtcHB4Z29xamhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1NTU4NDEsImV4cCI6MjA3NDEzMTg0MX0.zyf3b4xMdJGL_otpISynldiLtc-8NyO2_Dv00Y-Fvk8';
+
+        // Initialize Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Global Variables
+        let selectedHostel = '';
+        let currentSnack = null;
+        let ordersInterval = null;
+
+        // DOM Elements
+        const hostelSelector = document.getElementById('hostelSelector');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const snacksList = document.getElementById('snacksList');
+        const noSnacksMessage = document.getElementById('noSnacksMessage');
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        const noOrdersMessage = document.getElementById('noOrdersMessage');
+        const checkoutModal = document.getElementById('checkoutModal');
+        const checkoutForm = document.getElementById('checkoutForm');
+        const checkoutSnackInfo = document.getElementById('checkoutSnackInfo');
+        const checkoutTotal = document.getElementById('checkoutTotal');
+        const orderQuantity = document.getElementById('orderQuantity');
+        const snackUploadForm = document.getElementById('snackUploadForm');
+        const alertContainer = document.getElementById('alertContainer');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const buyerHostelInfo = document.getElementById('buyerHostelInfo');
+        const sellerHostelInfo = document.getElementById('sellerHostelInfo');
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Set up event listeners
+            hostelSelector.addEventListener('change', handleHostelChange);
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
+
+            document.querySelector('.close-modal').addEventListener('click', closeCheckoutModal);
+            checkoutForm.addEventListener('submit', handleCheckout);
+            snackUploadForm.addEventListener('submit', handleSnackUpload);
+            orderQuantity.addEventListener('input', updateCheckoutTotal);
+
+            // Set up real-time subscriptions
+            setupRealtimeSubscriptions();
+            
+            // Start order auto-cancel check
+            startOrderAutoCancelCheck();
+        }
+
+        function handleHostelChange() {
+            selectedHostel = hostelSelector.value;
+            updateHostelInfo();
+            
+            if (selectedHostel) {
+                loadSnacks();
+                if (document.getElementById('sellerTab').classList.contains('active')) {
+                    loadOrders();
+                }
+            } else {
+                snacksList.innerHTML = '';
+                noSnacksMessage.classList.remove('hidden');
+                buyerHostelInfo.innerHTML = '<p>Please select your hostel to view available snacks.</p>';
+            }
+        }
+
+        function updateHostelInfo() {
+            if (selectedHostel) {
+                buyerHostelInfo.innerHTML = `<p>Showing snacks for: <strong>${selectedHostel}</strong></p>`;
+                sellerHostelInfo.innerHTML = `<p>Managing orders for: <strong>${selectedHostel}</strong></p>`;
+            } else {
+                buyerHostelInfo.innerHTML = '';
+                sellerHostelInfo.innerHTML = '';
+            }
+        }
+
+        function switchTab(tabName) {
+            // Update active tab button
+            tabButtons.forEach(button => {
+                button.classList.toggle('active', button.dataset.tab === tabName);
+            });
+
+            // Show active tab content
+            tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === `${tabName}Tab`);
+            });
+
+            // Load data for the selected tab
+            if (tabName === 'buyer' && selectedHostel) {
+                loadSnacks();
+            } else if (tabName === 'seller' && selectedHostel) {
+                loadOrders();
+            }
+        }
+
+        async function loadSnacks() {
+            if (!selectedHostel) return;
+
+            showLoading();
+            
+            try {
+                const { data: snacks, error } = await supabase
+                    .from('snacks')
+                    .select('*')
+                    .eq('hostel', selectedHostel)
+                    .eq('is_available', true)
+                    .gt('quantity', 0)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                displaySnacks(snacks);
+            } catch (error) {
+                console.error('Error loading snacks:', error);
+                showAlert('Error loading snacks. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displaySnacks(snacks) {
+            if (!snacks || snacks.length === 0) {
+                snacksList.innerHTML = '';
+                noSnacksMessage.classList.remove('hidden');
+                return;
+            }
+
+            noSnacksMessage.classList.add('hidden');
+            
+            snacksList.innerHTML = snacks.map(snack => `
+                <div class="snack-item">
+                    <img src="${snack.image_url || 'https://via.placeholder.com/300x200/1e293b/94a3b8?text=No+Image'}" 
+                         alt="${snack.name}" class="snack-image">
+                    <h3 class="snack-name">${snack.name}</h3>
+                    <div class="snack-price">₹${snack.price}</div>
+                    <div class="snack-quantity">Available: ${snack.quantity}</div>
+                    <div class="snack-seller">Seller: ${snack.seller_name} (${snack.seller_phone})</div>
+                    <button class="btn btn-primary w-full" onclick="openCheckoutModal('${snack.id}')">
+                        Order Now
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function openCheckoutModal(snackId) {
+            if (!selectedHostel) {
+                showAlert('Please select your hostel first.', 'error');
+                return;
+            }
+
+            // Find the snack details
+            const snackItems = document.querySelectorAll('.snack-item');
+            let snack = null;
+            
+            snackItems.forEach(item => {
+                const button = item.querySelector('button');
+                if (button.getAttribute('onclick').includes(snackId)) {
+                    const name = item.querySelector('.snack-name').textContent;
+                    const price = parseFloat(item.querySelector('.snack-price').textContent.replace('₹', ''));
+                    const quantity = parseInt(item.querySelector('.snack-quantity').textContent.replace('Available: ', ''));
+                    const sellerInfo = item.querySelector('.snack-seller').textContent;
+                    const sellerName = sellerInfo.split('Seller: ')[1].split(' (')[0];
+                    const sellerPhone = sellerInfo.split(' (')[1].replace(')', '');
+                    
+                    snack = {
+                        id: snackId,
+                        name,
+                        price,
+                        quantity,
+                        seller_name: sellerName,
+                        seller_phone: sellerPhone
+                    };
+                }
+            });
+
+            if (!snack) {
+                showAlert('Snack not found. Please try again.', 'error');
+                return;
+            }
+
+            currentSnack = snack;
+            
+            // Update modal content
+            checkoutSnackInfo.innerHTML = `
+                <h4>${snack.name}</h4>
+                <p>Price: ₹${snack.price} per item</p>
+                <p>Available: ${snack.quantity}</p>
+            `;
+            
+            // Set buyer hostel to selected hostel
+            document.getElementById('buyerHostel').value = selectedHostel;
+            
+            // Reset form
+            checkoutForm.reset();
+            orderQuantity.value = 1;
+            orderQuantity.max = snack.quantity;
+            
+            updateCheckoutTotal();
+            
+            // Show modal
+            checkoutModal.classList.add('active');
+        }
+
+        function closeCheckoutModal() {
+            checkoutModal.classList.remove('active');
+            currentSnack = null;
+        }
+
+        function updateCheckoutTotal() {
+            if (!currentSnack) return;
+            
+            const quantity = parseInt(orderQuantity.value) || 1;
+            const total = quantity * currentSnack.price;
+            checkoutTotal.textContent = `Total: ₹${total.toFixed(2)}`;
+        }
+
+        async function handleCheckout(event) {
+            event.preventDefault();
+            
+            if (!currentSnack) {
+                showAlert('No snack selected. Please try again.', 'error');
+                return;
+            }
+
+            const quantity = parseInt(orderQuantity.value);
+            const buyerName = document.getElementById('buyerName').value;
+            const buyerRoom = document.getElementById('buyerRoom').value;
+            const buyerPhone = document.getElementById('buyerPhone').value;
+            const buyerHostel = document.getElementById('buyerHostel').value;
+
+            if (quantity > currentSnack.quantity) {
+                showAlert(`Only ${currentSnack.quantity} items available.`, 'error');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                // Create the order
+                const { data: order, error } = await supabase
+                    .from('orders')
+                    .insert([{
+                        snack_id: currentSnack.id,
+                        buyer_name: buyerName,
+                        buyer_room: buyerRoom,
+                        buyer_phone: buyerPhone,
+                        buyer_hostel: buyerHostel,
+                        quantity: quantity,
+                        total_price: quantity * currentSnack.price,
+                        seller_phone: currentSnack.seller_phone,
+                        status: 'pending'
+                    }])
+                    .select();
+
+                if (error) throw error;
+
+                // Update snack quantity
+                const newQuantity = currentSnack.quantity - quantity;
+                const { error: updateError } = await supabase
+                    .from('snacks')
+                    .update({ quantity: newQuantity })
+                    .eq('id', currentSnack.id);
+
+                if (updateError) throw updateError;
+
+                showAlert('Order placed successfully! The seller will confirm your order soon.', 'success');
+                closeCheckoutModal();
+                loadSnacks(); // Refresh snacks list
+            } catch (error) {
+                console.error('Error placing order:', error);
+                showAlert('Error placing order. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function loadOrders() {
+            if (!selectedHostel) return;
+
+            showLoading();
+
+            try {
+                // Get snacks from the selected hostel
+                const { data: snacks, error: snacksError } = await supabase
+                    .from('snacks')
+                    .select('id, name')
+                    .eq('hostel', selectedHostel);
+
+                if (snacksError) throw snacksError;
+
+                if (!snacks || snacks.length === 0) {
+                    ordersTableBody.innerHTML = '';
+                    noOrdersMessage.classList.remove('hidden');
+                    return;
+                }
+
+                const snackIds = snacks.map(snack => snack.id);
+
+                // Get orders for these snacks
+                const { data: orders, error: ordersError } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .in('snack_id', snackIds)
+                    .order('created_at', { ascending: false });
+
+                if (ordersError) throw ordersError;
+
+                displayOrders(orders, snacks);
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                showAlert('Error loading orders. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displayOrders(orders, snacks) {
+            if (!orders || orders.length === 0) {
+                ordersTableBody.innerHTML = '';
+                noOrdersMessage.classList.remove('hidden');
+                return;
+            }
+
+            noOrdersMessage.classList.add('hidden');
+            
+            ordersTableBody.innerHTML = orders.map(order => {
+                const snack = snacks.find(s => s.id === order.snack_id);
+                const snackName = snack ? snack.name : 'Unknown Snack';
+                const createdTime = new Date(order.created_at).toLocaleTimeString();
+                const statusClass = `status-${order.status}`;
+                
+                return `
+                    <tr>
+                        <td>${order.id.substring(0, 8)}...</td>
+                        <td>${snackName}</td>
+                        <td>
+                            <div>${order.buyer_name}</div>
+                            <div>Room: ${order.buyer_room}</div>
+                            <div>Phone: ${order.buyer_phone}</div>
+                        </td>
+                        <td>${order.quantity}</td>
+                        <td>₹${order.total_price}</td>
+                        <td><span class="status-badge ${statusClass}">${order.status}</span></td>
+                        <td>${createdTime}</td>
+                        <td>
+                            ${order.status === 'pending' ? `
+                                <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order.id}', 'confirmed')">
+                                    Confirm
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${order.id}', 'rejected')">
+                                    Reject
+                                </button>
+                            ` : 'No actions'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function updateOrderStatus(orderId, status) {
+            showLoading();
+
+            try {
+                const { error } = await supabase
+                    .from('orders')
+                    .update({ 
+                        status: status,
+                        confirmed_at: status === 'confirmed' ? new Date().toISOString() : null
+                    })
+                    .eq('id', orderId);
+
+                if (error) throw error;
+
+                showAlert(`Order ${status} successfully!`, 'success');
+                loadOrders(); // Refresh orders list
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                showAlert('Error updating order. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function handleSnackUpload(event) {
+            event.preventDefault();
+            
+            const snackName = document.getElementById('snackName').value;
+            const snackPrice = parseFloat(document.getElementById('snackPrice').value);
+            const snackQuantity = parseInt(document.getElementById('snackQuantity').value);
+            const sellerHostel = document.getElementById('sellerHostel').value;
+            const sellerName = document.getElementById('sellerName').value;
+            const sellerPhone = document.getElementById('sellerPhone').value;
+            const snackImage = document.getElementById('snackImage').value;
+
+            showLoading();
+
+            try {
+                const { data, error } = await supabase
+                    .from('snacks')
+                    .insert([{
+                        name: snackName,
+                        price: snackPrice,
+                        quantity: snackQuantity,
+                        hostel: sellerHostel,
+                        seller_name: sellerName,
+                        seller_phone: sellerPhone,
+                        image_url: snackImage || null,
+                        is_available: true
+                    }])
+                    .select();
+
+                if (error) throw error;
+
+                showAlert('Snack uploaded successfully!', 'success');
+                snackUploadForm.reset();
+                
+                // If on buyer tab and hostel matches, refresh snacks
+                if (selectedHostel === sellerHostel && document.getElementById('buyerTab').classList.contains('active')) {
+                    loadSnacks();
+                }
+            } catch (error) {
+                console.error('Error uploading snack:', error);
+                showAlert('Error uploading snack. Please try again.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function setupRealtimeSubscriptions() {
+            // Subscribe to snacks changes
+            supabase
+                .channel('snacks-changes')
+                .on('postgres_changes', 
+                    { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'snacks' 
+                    }, 
+                    (payload) => {
+                        if (selectedHostel && document.getElementById('buyerTab').classList.contains('active')) {
+                            loadSnacks();
+                        }
+                    }
+                )
+                .subscribe();
+
+            // Subscribe to orders changes
+            supabase
+                .channel('orders-changes')
+                .on('postgres_changes', 
+                    { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'orders' 
+                    }, 
+                    (payload) => {
+                        if (selectedHostel && document.getElementById('sellerTab').classList.contains('active')) {
+                            loadOrders();
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        function startOrderAutoCancelCheck() {
+            // Check for pending orders older than 2 minutes every 30 seconds
+            ordersInterval = setInterval(async () => {
+                try {
+                    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+                    
+                    const { data: oldOrders, error } = await supabase
+                        .from('orders')
+                        .select('id, snack_id, quantity')
+                        .eq('status', 'pending')
+                        .lt('created_at', twoMinutesAgo);
+
+                    if (error) throw error;
+
+                    if (oldOrders && oldOrders.length > 0) {
+                        for (const order of oldOrders) {
+                            // Update order status to cancelled
+                            await supabase
+                                .from('orders')
+                                .update({ status: 'cancelled' })
+                                .eq('id', order.id);
+
+                            // Restore snack quantity
+                            const { data: snack } = await supabase
+                                .from('snacks')
+                                .select('quantity')
+                                .eq('id', order.snack_id)
+                                .single();
+
+                            if (snack) {
+                                await supabase
+                                    .from('snacks')
+                                    .update({ quantity: snack.quantity + order.quantity })
+                                    .eq('id', order.snack_id);
+                            }
+                        }
+
+                        console.log(`Auto-cancelled ${oldOrders.length} orders`);
+                    }
+                } catch (error) {
+                    console.error('Error in auto-cancel check:', error);
+                }
+            }, 30000); // Check every 30 seconds
+        }
+
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.marginBottom = '10px';
+            
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        function showLoading() {
+            loadingSpinner.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+            loadingSpinner.classList.add('hidden');
+        }
+
+        // Make functions available globally for onclick handlers
+        window.openCheckoutModal = openCheckoutModal;
+        window.updateOrderStatus = updateOrderStatus;
+    </script>
+</body>
+</html>
